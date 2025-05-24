@@ -42,23 +42,38 @@ all_areas = area_limit_stats.index.tolist()
 df['year'] = np.random.choice(range(2018, 2023), size=len(df))
 
 # 图1：性别与逾期状态比例分布
-sex_overdue_fig = px.histogram(
-    df.dropna(subset=['Sex', 'Overdue_Group']),
-    x="Sex",
-    color="Overdue_Group",
-    barmode="relative",
-    barnorm="percent",
-    text_auto=True,
+import plotly.express as px
+import pandas as pd
+
+# 过滤掉缺失值
+df_clean = df.dropna(subset=['Sex', 'Overdue_Group'])
+
+# 计算每个性别和逾期组别的计数
+grouped = df_clean.groupby(['Sex', 'Overdue_Group']).size().reset_index(name='count')
+
+# 计算每个性别下的总人数，用于计算百分比
+total_by_sex = grouped.groupby('Sex')['count'].transform('sum')
+grouped['percentage'] = grouped['count'] / total_by_sex
+
+# 创建柱状图
+sex_overdue_fig = px.bar(
+    grouped,
+    x='Sex',
+    y='percentage',
+    color='Overdue_Group',
+    text='count',  # 显示原始计数值
+    barmode='stack',
+    category_orders={"Overdue_Group": ["无逾期", "1-30天", "30天以上"], "Sex": ["男", "女"]},
     color_discrete_sequence=px.colors.qualitative.Set2,
-    category_orders={"Overdue_Group": ["无逾期", "1-30天", "30天以上"], "Sex": ["男", "女"]}
 )
-# 白色描边
+
+# 设置文本样式：居中显示数字
 for trace in sex_overdue_fig.data:
+    trace.textposition = 'inside'
     trace.marker.line.color = 'white'
     trace.marker.line.width = 0.3
-    trace.texttemplate = '%{text}'
-    trace.textposition = 'inside'
 
+# 更新布局
 sex_overdue_fig.update_layout(
     yaxis_title="比例",
     xaxis_title="性别",
@@ -66,10 +81,21 @@ sex_overdue_fig.update_layout(
     legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, traceorder='reversed'),
     template='plotly_white',
     margin=dict(l=20, r=20, t=60, b=20),
-    title_text='',
+    title_text='性别与逾期状态比例分布',
     bargap=0.3
 )
-sex_overdue_fig.update_yaxes(tickformat=".0%", range=[0, 1], showgrid=True, zeroline=True, gridcolor='#e5e5e5', constrain='domain')
+
+# 更新 y 轴为百分比格式，范围 [0, 1]
+sex_overdue_fig.update_yaxes(
+    tickformat=".0%",
+    range=[0, 1],
+    showgrid=True,
+    zeroline=True,
+    gridcolor='#e5e5e5',
+    constrain='domain'
+)
+
+# 隐藏 x 轴网格线
 sex_overdue_fig.update_xaxes(showgrid=False)
 
 # 图2：年龄与违约概率的关系（热力图，亮色渐变）
