@@ -18,7 +18,7 @@ df = pd.read_csv("bank_credit_scoring.csv")
 df.columns = [
     "Debt", "Overdue_Days", "Initial_Limit", "Birth_Date", "Sex", "Education", "Income", "Loan_Term",
     "Credit_History_Rating", "Living_Area", "Settlement_Name", "Industry_Name", "Probability_of_Default",
-    "Client_ID", "Scoring_Mark", "Velcom_Scoring", "Family_Status"
+    "Client_ID", "Scoring_Mark", "Underage_Children_Count", "Velcom_Scoring", "Family_Status"
 ]
 
 # 处理年龄
