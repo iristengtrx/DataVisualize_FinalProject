@@ -150,36 +150,91 @@ mirror_fig.update_yaxes(
     ticktext=[str(max(mirror_df['count'])), "0", str(max(mirror_df['count']))]
 )
 
-# 图5：各地域平均信贷限额对比
-bar_df = df.groupby('Living_Area')['Initial_Limit'].mean().reset_index()
-bar_df = bar_df.sort_values('Initial_Limit', ascending=False)
-bar_fig = px.bar(
-    bar_df,
-    x='Living_Area',
-    y='Initial_Limit',
-    color='Initial_Limit',
-    color_continuous_scale=color_scale,
-    labels={'Living_Area': '地区', 'Initial_Limit': '平均信贷限额'},
-    category_orders={'Living_Area': bar_df['Living_Area'].tolist()}
+# -------- 新增：债务区间与逾期天数分布、阈值效应、收入债务比分析 --------
+# 1. 债务区间与逾期天数分布（堆叠条形图）
+df['Debt_Bin'] = pd.cut(
+    df['Debt'],
+    bins=[0, 2000, 4000, 6000, 8000, 10000, np.inf],
+    labels=["0-2k", "2k-4k", "4k-6k", "6k-8k", "8k-10k", "10k+"],
+    right=False
 )
-bar_fig.update_layout(
-    xaxis_tickangle=-45,
-    xaxis_title='居住地区',
-    yaxis_title='平均初始信贷限额(元)',
-    showlegend=False,
-    template='plotly_white',
-    margin=dict(l=20, r=20, t=60, b=20),
-    title_text=''
+df['Delinquency_Bin'] = pd.cut(
+    df['Overdue_Days'],
+    bins=[-np.inf, 0, 24, 49, np.inf],
+    labels=["无逾期", "0-24天", "24-49天", "49+天"],
+    right=False
 )
+# 统计各债务区间逾期天数分布
+debt_overdue_df = df.dropna(subset=['Debt_Bin', 'Delinquency_Bin'])
+debt_overdue_count = debt_overdue_df.groupby(['Debt_Bin', 'Delinquency_Bin']).size().reset_index(name='count')
+# 堆叠条形图
+fig_debt_overdue = px.bar(
+    debt_overdue_count,
+    x='Debt_Bin', y='count', color='Delinquency_Bin',
+    color_discrete_sequence=color_sequence,
+    category_orders={"Debt_Bin": ["0-2k", "2k-4k", "4k-6k", "6k-8k", "8k-10k", "10k+"],
+                     "Delinquency_Bin": ["无逾期", "0-24天", "24-49天", "49+天"]},
+    barmode='stack',
+    text='count'
+)
+fig_debt_overdue.update_traces(textposition='inside', marker_line_color='white', marker_line_width=0.3)
+fig_debt_overdue.update_layout(
+    xaxis_title="债务区间(元)", yaxis_title="客户数量", legend_title="逾期天数",
+    template='plotly_white', bargap=0.3,
+    margin=dict(l=20, r=20, t=60, b=20), title_text=''
+)
+fig_debt_overdue.update_xaxes(tickangle=0)
 
-# 分析文本内容
+# 2. 债务阈值效应分析（逾期率趋势线）
+debt_bin_delinquency = df.dropna(subset=['Debt_Bin'])
+debt_bin_delinquency['is_delinquent'] = debt_bin_delinquency['Overdue_Days'] > 0
+delinquency_rate_df = debt_bin_delinquency.groupby('Debt_Bin')['is_delinquent'].mean().reset_index()
+fig_debt_threshold = px.line(
+    delinquency_rate_df, x='Debt_Bin', y='is_delinquent',
+    markers=True, line_shape='linear',
+)
+fig_debt_threshold.update_traces(line_color=color_sequence[0], marker_color=color_sequence[1], line_width=3)
+fig_debt_threshold.update_layout(
+    xaxis_title="债务区间(元)", yaxis_title="逾期率",
+    template='plotly_white',
+    margin=dict(l=20, r=20, t=60, b=20), title_text=''
+)
+fig_debt_threshold.update_yaxes(tickformat='.0%', range=[0, 1])
+fig_debt_threshold.update_xaxes(categoryorder='array', categoryarray=["0-2k", "2k-4k", "4k-6k", "6k-8k", "8k-10k", "10k+"])
+
+# 3. 收入债务比率与逾期天数分析（散点+平滑线）
+ratio_df = df[(df['Debt'] > 0) & (df['Income'] > 0)].copy()
+ratio_df['Overdue_Days'] = ratio_df['Overdue_Days'].clip(lower=0)
+ratio_df['income_debt_ratio'] = ratio_df['Income'] / ratio_df['Debt']
+ratio_df['income_debt_ratio'] = ratio_df['income_debt_ratio'].clip(0.01, 10)
+fig_income_debt = px.scatter(
+    ratio_df, x='income_debt_ratio', y='Overdue_Days',
+    opacity=0.2, color_discrete_sequence=[color_scale[-1]],
+)
+# 平滑线
+from statsmodels.nonparametric.smoothers_lowess import lowess
+smooth = lowess(ratio_df['Overdue_Days'], ratio_df['income_debt_ratio'], frac=0.2, return_sorted=True)
+fig_income_debt.add_trace(
+    go.Scatter(x=smooth[:, 0], y=smooth[:, 1], mode='lines', line=dict(color=color_sequence[1], width=3), name='平滑线')
+)
+fig_income_debt.update_layout(
+    xaxis_title="收入/债务比率 (对数坐标)", yaxis_title="逾期天数",
+    template='plotly_white',
+    margin=dict(l=20, r=20, t=60, b=20), title_text=''
+)
+fig_income_debt.update_xaxes(type='log', tickvals=[0.01, 0.1, 1, 10], ticktext=["0.01", "0.1", "1", "10"])
+
+# 新增分析文本
 analysis_texts = [
     "本图展示了不同性别客户在逾期状态上的比例分布。通过对比男性与女性在'无逾期'、'1-30天逾期'以及'30天以上逾期'三类状态下的占比，可以帮助我们了解性别因素是否对信贷风险有显著影响。可以看到，不同性别中三种逾期状态的占比没有明显差别，因此认为逾期状态与性别无关。",
     "本图反映了客户年龄与其违约概率之间的关系。通过热力图和趋势线，我们可以观察不同年龄段客户的违约风险分布情况。分析该关系有助于识别高风险年龄群体，从而在信贷审批和额度分配时进行针对性调整。可以看到，随着年龄的增长，违约概率大致呈上升趋势。因此，在信贷审批时，可以适当提高年龄较大客户的信用评分门槛。",
     "本图分析了不同教育水平客户的信用评分分布情况。通过对比'中等教育'、'中等专业教育'和'高等教育'三类客户的信用评分分布，可以评估教育背景对信用状况的影响。有较高学历水平的人群的信用评分的中位数更高，说明教育水平在一定程度上反映了客户的信用风险。",
     "本图将客户按收入分组，展示了不同收入群体在各逾期天数区间的分布。通过对比'收入<1500'和'收入≥1500'两组客户在逾期天数上的差异，可以判断收入水平对逾期风险的影响。可以看到，较低收入的人群逾期天数会更多，建议在信贷政策中加强对低收入客户的风险管控。",
     "本图展示了不同居住地区客户的平均信贷限额。通过对比各地区的平均额度，可以发现哪些地区的客户获得的信贷支持更高，哪些地区相对较低。这有助于评估信贷资源的地域分布是否合理，并为后续的市场拓展或风险防控提供参考。",
-    "本图通过箱线图展示了各地区信贷限额的分布情况。用户可以选择展示前XXX个地区，进一步分析不同地区客户的信贷额度分布特征。该分析有助于发现某些地区信贷额度分布的异常情况（如极端值、分布偏态等），为信贷政策优化和风险预警提供依据。"
+    "本图通过箱线图展示了各地区信贷限额的分布情况。用户可以选择展示前XXX个地区，进一步分析不同地区客户的信贷额度分布特征。该分析有助于发现某些地区信贷额度分布的异常情况（如极端值、分布偏态等），为信贷政策优化和风险预警提供依据。",
+    "本图采用堆叠条形图展示了不同债务区间客户的逾期天数分布。整体来看，0-2k和2k-4k区间客户数量最多，占总样本约63%。高债务客户（10k+）虽有较高严重逾期风险，但也有不少良好还款记录。4k-6k区间客户需重点关注，建议加强还款提醒和流动性支持。",
+    "本图展示了各债务区间的逾期率趋势。整体逾期率呈倒U型，2k-6k区间最高，10k+区间反而较低。6k-8k区间为风险拐点，说明高债务客户可能因风控更严格而逾期率下降。0-2k区间逾期率高于10k+，提示低债务客户中也有高风险群体。",
+    "本图分析了收入债务比率与逾期天数的关系。低比率（0.01-0.1）客户逾期天数高，随着比率升高逾期天数下降，但高比率区间又有上升趋势，提示高收入低债务客户中也存在特殊风险。建议对极端比率客户加强早期风险干预。"
 ]
 
 # 结论卡片
@@ -258,6 +313,21 @@ demographic_page = html.Div([
                     dbc.CardHeader(html.H4("图4. 收入分组与逾期天数分布分析", className="mb-0 fw-bold")),
                     html.Div(analysis_texts[3], className="p-3 mb-2 bg-light rounded"),
                     dbc.CardBody(dcc.Graph(figure=mirror_fig, style={"height": "520px"}))
+                ], className="mb-5 shadow-lg rounded-4 border-0"),
+                dbc.Card([
+                    dbc.CardHeader(html.H4("图5. 债务区间与逾期天数分布", className="mb-0 fw-bold")),
+                    html.Div(analysis_texts[6], className="p-3 mb-2 bg-light rounded"),
+                    dbc.CardBody(dcc.Graph(figure=fig_debt_overdue, style={"height": "520px"}))
+                ], className="mb-5 shadow-lg rounded-4 border-0"),
+                dbc.Card([
+                    dbc.CardHeader(html.H4("图6. 债务阈值效应分析", className="mb-0 fw-bold")),
+                    html.Div(analysis_texts[7], className="p-3 mb-2 bg-light rounded"),
+                    dbc.CardBody(dcc.Graph(figure=fig_debt_threshold, style={"height": "520px"}))
+                ], className="mb-5 shadow-lg rounded-4 border-0"),
+                dbc.Card([
+                    dbc.CardHeader(html.H4("图7. 收入债务比率与逾期天数分析", className="mb-0 fw-bold")),
+                    html.Div(analysis_texts[8], className="p-3 mb-2 bg-light rounded"),
+                    dbc.CardBody(dcc.Graph(figure=fig_income_debt, style={"height": "520px"}))
                 ], className="mb-5 shadow-lg rounded-4 border-0")
             ], width=12)
         ])
