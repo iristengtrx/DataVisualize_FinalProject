@@ -190,16 +190,20 @@ df['Delinquency_Bin'] = pd.cut(
 debt_overdue_df = df.dropna(subset=['Debt_Bin', 'Delinquency_Bin'])
 debt_overdue_count = debt_overdue_df.groupby(['Debt_Bin', 'Delinquency_Bin']).size().reset_index(name='count')
 # 堆叠条形图
+
 fig_debt_overdue = px.bar(
     debt_overdue_count,
     x='Debt_Bin', y='count', color='Delinquency_Bin',
     color_discrete_sequence=color_sequence,
     category_orders={"Debt_Bin": ["0-2k", "2k-4k", "4k-6k", "6k-8k", "8k-10k", "10k+"],
                      "Delinquency_Bin": ["无逾期", "0-24天", "24-49天", "49+天"]},
-    barmode='stack',
-    text='count'
+    barmode='stack'
+    # 移除了 text='count' 参数以去掉数字标识
 )
-fig_debt_overdue.update_traces(textposition='inside', marker_line_color='white', marker_line_width=0.3)
+
+# 更新 traces 样式，但不设置 textposition 和 marker line color/width 用于文本
+fig_debt_overdue.update_traces(marker_line_color='white', marker_line_width=0.3)
+
 fig_debt_overdue.update_layout(
     xaxis_title="债务区间(元)", yaxis_title="客户数量", legend_title="逾期天数",
     template='plotly_white', bargap=0.3,
@@ -233,18 +237,45 @@ fig_income_debt = px.scatter(
     ratio_df, x='income_debt_ratio', y='Overdue_Days',
     opacity=0.2, color_discrete_sequence=[color_scale[-1]],
 )
-# 平滑线
-from statsmodels.nonparametric.smoothers_lowess import lowess
-smooth = lowess(ratio_df['Overdue_Days'], ratio_df['income_debt_ratio'], frac=0.2, return_sorted=True)
-fig_income_debt.add_trace(
-    go.Scatter(x=smooth[:, 0], y=smooth[:, 1], mode='lines', line=dict(color=color_sequence[1], width=3), name='平滑线')
-)
+
+import plotly.graph_objs as go
+from pygam import GAM, s
+
+# 假设 ratio_df 是包含 'income_debt_ratio' 和 'Overdue_Days' 列的 DataFrame
+# 示例数据准备（请替换为实际的数据）
+# ratio_df = pd.read_csv('your_data_path.csv')
+
+# 使用 pyGAM 来拟合一个 GAM 模型
+gam = GAM().gridsearch(np.log10(ratio_df['income_debt_ratio'].values.reshape(-1, 1)), 
+                       ratio_df['Overdue_Days'].values, 
+                       lam=np.logspace(-3, 3, num=11),
+                       n_splines=[5])
+XX = gam.generate_X_grid(term=0, n=300)
+predicted = gam.predict(XX)
+
+# 创建 Plotly 图形对象
+fig_income_debt = go.Figure()
+
+# 添加散点图层
+fig_income_debt.add_trace(go.Scatter(
+    x=ratio_df['income_debt_ratio'], y=ratio_df['Overdue_Days'],
+    mode='markers', marker=dict(color="#2c7bb6", opacity=0.2), name='数据点'
+))
+
+# 添加平滑线图层
+fig_income_debt.add_trace(go.Scatter(
+    x=10**XX[:, 0], y=predicted, mode='lines',
+    line=dict(color="#d7191c", width=3), name='平滑线'
+))
+
+# 更新布局
 fig_income_debt.update_layout(
     xaxis_title="收入/债务比率 (对数坐标)", yaxis_title="逾期天数",
     template='plotly_white',
-    margin=dict(l=20, r=20, t=60, b=20), title_text=''
+    margin=dict(l=20, r=20, t=60, b=20), title_text='',
+    xaxis_type="log", xaxis_tickvals=[0.01, 0.1, 1, 10],
+    xaxis_ticktext=["0.01", "0.1", "1", "10"]
 )
-fig_income_debt.update_xaxes(type='log', tickvals=[0.01, 0.1, 1, 10], ticktext=["0.01", "0.1", "1", "10"])
 
 # 新增分析文本
 analysis_texts = [
