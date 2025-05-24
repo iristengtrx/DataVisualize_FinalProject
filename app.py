@@ -52,21 +52,25 @@ sex_overdue_fig = px.histogram(
     color_discrete_sequence=px.colors.qualitative.Set2,
     category_orders={"Overdue_Group": ["无逾期", "1-30天", "30天以上"], "Sex": ["男", "女"]}
 )
+# 白色描边
+for trace in sex_overdue_fig.data:
+    trace.marker.line.color = 'white'
+    trace.marker.line.width = 0.3
+    trace.texttemplate = '%{text}'
+    trace.textposition = 'inside'
+
 sex_overdue_fig.update_layout(
     yaxis_title="比例",
     xaxis_title="性别",
     legend_title="逾期状态",
-    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, traceorder='reversed'),
     template='plotly_white',
     margin=dict(l=20, r=20, t=60, b=20),
     title_text='',
-    bargap=0.3  # 柱状之间间隔更大，柱更细
+    bargap=0.3
 )
-sex_overdue_fig.update_yaxes(tickformat=".0%", range=[0, 1])
-# 只显示数值，不带%（texttemplate）
-for trace in sex_overdue_fig.data:
-    trace.texttemplate = '%{text}'
-    trace.textposition = 'outside'
+sex_overdue_fig.update_yaxes(tickformat=".0%", range=[0, 1], showgrid=True, zeroline=True, gridcolor='#e5e5e5', constrain='domain')
+sex_overdue_fig.update_xaxes(showgrid=False)
 
 # 图2：年龄与违约概率的关系（热力图，亮色渐变）
 age_prob_df = df.dropna(subset=['Age', 'Probability_of_Default'])
@@ -187,14 +191,14 @@ analysis_texts = [
 app.layout = html.Div([
     navbar,
     dbc.Container([
-        dbc.Row([
-            dbc.Col(
-                html.H1("银行信用评分数据分析仪表板（含R分析复刻）", 
-                    className="text-center mb-4 mt-4 fw-bold",
-                    style={"fontSize": "2.8rem", "letterSpacing": "2px", "color": "#2d3142"}
-                ), width=12
-            )
-        ]),
+        # dbc.Row([
+        #     dbc.Col(
+        #         html.H1("银行信用评分数据分析仪表板（含R分析复刻）", 
+        #             className="text-center mb-4 mt-4 fw-bold",
+        #             style={"fontSize": "2.8rem", "letterSpacing": "2px", "color": "#2d3142"}
+        #         ), width=12
+        #     )
+        # ]),
         dbc.Row([
             dbc.Col([
                 # 图1
