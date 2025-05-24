@@ -41,10 +41,7 @@ all_areas = area_limit_stats.index.tolist()
 # 年份动画
 df['year'] = np.random.choice(range(2018, 2023), size=len(df))
 
-# 统一配色
-color_seq = px.colors.sequential.Plasma
-
-# 图1
+# 图1：性别与逾期状态比例分布
 sex_overdue_fig = px.histogram(
     df.dropna(subset=['Sex', 'Overdue_Group']),
     x="Sex",
@@ -52,7 +49,7 @@ sex_overdue_fig = px.histogram(
     barmode="relative",
     barnorm="percent",
     text_auto=True,
-    color_discrete_sequence=color_seq,
+    color_discrete_sequence=px.colors.qualitative.Set2,
     category_orders={"Overdue_Group": ["无逾期", "1-30天", "30天以上"], "Sex": ["男", "女"]},
     title="图1. 性别与逾期状态比例分布"
 )
@@ -66,11 +63,11 @@ sex_overdue_fig.update_layout(
 )
 sex_overdue_fig.update_yaxes(tickformat=".0%")
 
-# 图2
+# 图2：年龄与违约概率的关系（热力图，亮色渐变）
 age_prob_df = df.dropna(subset=['Age', 'Probability_of_Default'])
 hex_fig = px.density_heatmap(
     age_prob_df, x="Age", y="Probability_of_Default", nbinsx=30, nbinsy=30,
-    color_continuous_scale=color_seq,
+    color_continuous_scale=px.colors.sequential.YlGnBu,
     title="图2. 年龄与违约概率的关系"
 )
 if not age_prob_df.empty:
@@ -85,11 +82,11 @@ hex_fig.update_layout(
     margin=dict(l=20, r=20, t=60, b=20)
 )
 
-# 图3
+# 图3：教育水平与信用评分分布分析
 edu_score_df = df.dropna(subset=['Education', 'Scoring_Mark'])
 edu_score_fig = px.violin(
     edu_score_df, x="Education", y="Scoring_Mark", box=True, points="all",
-    color="Education", color_discrete_sequence=color_seq,
+    color="Education", color_discrete_sequence=px.colors.qualitative.Set2,
     title="图3. 教育水平与信用评分分布分析"
 )
 edu_score_fig.update_layout(
@@ -100,7 +97,42 @@ edu_score_fig.update_layout(
     margin=dict(l=20, r=20, t=60, b=20)
 )
 
-# 图4（条形图，排序+颜色随数额）
+# 图4：收入分组与逾期天数分布分析（镜像条形图）
+income_group = np.where(df['Income'] < 1500, "收入<1500", "收入≥1500")
+overdue_group = pd.cut(
+    df['Overdue_Days'],
+    bins=[-1, 0, 30, 100, 300, np.inf],
+    labels=["未逾期", "1-30天", "31-100天", "101-300天", "300天以上"]
+)
+mirror_df = pd.DataFrame({
+    "income_group": income_group,
+    "overdue_group": overdue_group
+})
+mirror_df = mirror_df.dropna()
+mirror_df = mirror_df.groupby(['income_group', 'overdue_group']).size().reset_index(name='count')
+mirror_df['sym_count'] = mirror_df.apply(lambda row: -row['count'] if row['income_group'] == "收入<1500" else row['count'], axis=1)
+
+mirror_fig = px.bar(
+    mirror_df, x="overdue_group", y="sym_count", color="income_group",
+    color_discrete_sequence=px.colors.qualitative.Pastel,
+    text="count", barmode="relative",
+    title="图4. 收入分组与逾期天数分布分析"
+)
+mirror_fig.update_traces(textposition='outside')
+mirror_fig.update_layout(
+    xaxis_title="逾期状态",
+    yaxis_title="客户数量",
+    legend_title="",
+    barmode="relative",
+    template='plotly_white',
+    margin=dict(l=20, r=20, t=60, b=20)
+)
+mirror_fig.update_yaxes(
+    tickvals=[-max(mirror_df['count']), 0, max(mirror_df['count'])],
+    ticktext=[str(max(mirror_df['count'])), "0", str(max(mirror_df['count']))]
+)
+
+# 图5：各地域平均信贷限额对比（条形图，排序+颜色随数额）
 bar_df = df.groupby('Living_Area')['Initial_Limit'].mean().reset_index()
 bar_df = bar_df.sort_values('Initial_Limit', ascending=False)
 bar_fig = px.bar(
@@ -108,8 +140,8 @@ bar_fig = px.bar(
     x='Living_Area',
     y='Initial_Limit',
     color='Initial_Limit',
-    color_continuous_scale=color_seq,
-    title='图4. 各地域平均信贷限额对比',
+    color_continuous_scale=px.colors.sequential.YlGnBu,
+    title='图5. 各地域平均信贷限额对比',
     labels={'Living_Area': '地区', 'Initial_Limit': '平均信贷限额'},
     category_orders={'Living_Area': bar_df['Living_Area'].tolist()}
 )
@@ -164,7 +196,13 @@ app.layout = html.Div([
                 ], className="mb-5 shadow-lg rounded-4 border-0"),
                 # 图4
                 dbc.Card([
-                    dbc.CardHeader(html.H4("图4. 各地域平均信贷限额对比", className="mb-0 fw-bold")),
+                    dbc.CardHeader(html.H4("图4. 收入分组与逾期天数分布分析", className="mb-0 fw-bold")),
+                    html.Div("", className="p-3 mb-2 bg-light rounded", style={"minHeight": "60px"}),
+                    dbc.CardBody(dcc.Graph(figure=mirror_fig, style={"height": "520px"}, config={'responsive': True}))
+                ], className="mb-5 shadow-lg rounded-4 border-0"),
+                # 图5
+                dbc.Card([
+                    dbc.CardHeader(html.H4("图5. 各地域平均信贷限额对比", className="mb-0 fw-bold")),
                     html.Div("", className="p-3 mb-2 bg-light rounded", style={"minHeight": "60px"}),
                     dbc.CardBody(dcc.Graph(figure=bar_fig, style={"height": "520px"}, config={'responsive': True}))
                 ], className="mb-5 shadow-lg rounded-4 border-0"),
@@ -174,7 +212,7 @@ app.layout = html.Div([
         dbc.Row([
             dbc.Col([
                 dbc.Card([
-                    dbc.CardHeader(html.H4("图5. 各地域信贷限额分布（可交互）", className="mb-0 fw-bold")),
+                    dbc.CardHeader(html.H4("图6. 各地域信贷限额分布（可交互）", className="mb-0 fw-bold")),
                     html.Div("", className="p-3 mb-2 bg-light rounded", style={"minHeight": "60px"}),
                     dbc.CardBody([
                         html.Label("选择展示的地区数量:", className="fw-bold mb-3"),
@@ -208,7 +246,7 @@ def update_graph(num_areas):
         x='Living_Area',
         y='Initial_Limit',
         color='Living_Area',
-        title=f'图5. 信贷限额最高的前 {num_areas} 个地区分布',
+        title=f'图6. 信贷限额最高的前 {num_areas} 个地区分布',
         labels={'Living_Area': '居住地区', 'Initial_Limit': '初始信贷限额'},
         template='plotly_white'
     )
