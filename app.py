@@ -10,6 +10,9 @@ from scipy.stats import gaussian_kde
 import dash_bootstrap_components as dbc
 from dash import callback_context
 
+if not hasattr(np, 'int'):
+    np.int = int
+
 app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 
 # 读取数据
