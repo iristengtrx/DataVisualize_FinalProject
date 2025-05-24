@@ -9,7 +9,9 @@ import plotly.graph_objects as go
 from scipy.stats import gaussian_kde
 
 # 初始化Dash应用
-app = Dash(__name__)
+import dash_bootstrap_components as dbc
+
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # 读取数据
 df = pd.read_csv("bank_credit_scoring.csv")
@@ -127,124 +129,104 @@ mirror_fig.update_layout(
 mirror_fig.update_yaxes(tickvals=[-max(mirror_df['count']), 0, max(mirror_df['count'])], ticktext=[str(max(mirror_df['count'])), "0", str(max(mirror_df['count']))])
 
 # 布局设置
-app.layout = html.Div([
-    html.H1(
-        "银行信用评分数据分析仪表板（含R分析复刻）",
-        style={
-            'textAlign': 'center',
-            'fontWeight': 'bold',
-            'fontSize': '2.5rem',
-            'marginBottom': '30px',
-            'color': '#22223b',
-            'letterSpacing': '2px'
-        }
-    ),
-
-    # 新增R分析复刻图表
-    html.Div([
-        html.H3("A. 性别与逾期状态比例分布", style={'textAlign': 'left', 'color': '#4f4f4f', 'marginTop': '20px'}),
-        dcc.Graph(figure=sex_overdue_fig, style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'}),
-        html.H3("B. 年龄与违约概率的关系", style={'textAlign': 'left', 'color': '#4f4f4f', 'marginTop': '30px'}),
-        dcc.Graph(figure=hex_fig, style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'}),
-        html.H3("C. 教育水平与信用评分分布分析", style={'textAlign': 'left', 'color': '#4f4f4f', 'marginTop': '30px'}),
-        dcc.Graph(figure=edu_score_fig, style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'}),
-        html.H3("D. 收入分组与逾期天数分布分析", style={'textAlign': 'left', 'color': '#4f4f4f', 'marginTop': '30px'}),
-        dcc.Graph(figure=mirror_fig, style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'}),
-    ], style={
-        'width': '90%',
-        'margin': 'auto',
-        'background': '#f8f9fa',
-        'padding': '30px 20px 30px 20px',
-        'borderRadius': '15px',
-        'boxShadow': '0 4px 24px #e0e0e0',
-        'marginBottom': '40px'
-    }),
-
-    # 箱线图部分
-    html.Div([
-        html.H3("1. 各地域信贷限额分布", style={'color': '#4f4f4f'}),
-        html.Label("选择展示的地区数量:", style={'fontWeight': 'bold'}),
-        dcc.Slider(
-            id='slider-num-areas',
-            min=1,
-            max=len(all_areas),
-            value=10,  # 默认值
-            marks={i: f'{i}个' for i in range(1, len(all_areas)+1, 5)},
-            step=1,
-            tooltip={"placement": "bottom", "always_visible": True}
-        ),
-        dcc.Graph(id='box-plot', style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'})
-    ], style={
-        'width': '90%',
-        'margin': 'auto',
-        'background': '#f8f9fa',
-        'padding': '30px 20px 30px 20px',
-        'borderRadius': '15px',
-        'boxShadow': '0 4px 24px #e0e0e0',
-        'marginBottom': '40px'
-    }),
-    
-    # 散点图部分
-    html.Div([
-        html.H3("2. 收入与信贷限额关系随时间变化", style={'color': '#4f4f4f'}),
-        dcc.Graph(figure=px.scatter(
-            df, 
-            x='Income', 
-            y='Initial_Limit', 
-            color='Living_Area',
-            animation_frame='year',
-            size='Probability_of_Default',
-            hover_name='Settlement_Name',
-            title='各地域收入与信贷限额关系随时间变化',
-            labels={'Income': '收入', 'Initial_Limit': '信贷限额', 'Living_Area': '地区', 
-                   'Probability_of_Default': '违约概率', 'year': '年份'},
-            template='plotly_white'
-        ).update_layout(
-            height=700,
-            width=1200,
-            xaxis_title='客户收入(元)',
-            yaxis_title='初始信贷限额(元)',
-            legend_title='居住地区'
-        ), style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'})
-    ], style={
-        'width': '90%',
-        'margin': 'auto',
-        'background': '#f8f9fa',
-        'padding': '30px 20px 30px 20px',
-        'borderRadius': '15px',
-        'boxShadow': '0 4px 24px #e0e0e0',
-        'marginBottom': '40px'
-    }),
-    
-    # 条形图部分
-    html.Div([
-        html.H3("3. 各地域平均信贷限额对比", style={'color': '#4f4f4f'}),
-        dcc.Graph(
-            figure=px.bar(
-                df.groupby('Living_Area')['Initial_Limit'].mean().reset_index(),
-                x='Living_Area',
-                y='Initial_Limit',
-                title='各地域平均信贷限额对比',
-                labels={'Living_Area': '地区', 'Initial_Limit': '平均信贷限额'},
-                template='plotly_white'
-            ).update_layout(
-                xaxis_tickangle=-45,
-                height=600,
-                width=1000,
-                xaxis_title='居住地区',
-                yaxis_title='平均初始信贷限额(元)',
-                showlegend=False
-            ), style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'})
-    ], style={
-        'width': '90%',
-        'margin': 'auto',
-        'background': '#f8f9fa',
-        'padding': '30px 20px 30px 20px',
-        'borderRadius': '15px',
-        'boxShadow': '0 4px 24px #e0e0e0',
-        'marginBottom': '40px'
-    }),
-], style={'background': '#edf2fb', 'minHeight': '100vh'})
+app.layout = dbc.Container([
+    dbc.Row([
+        dbc.Col(html.H1("银行信用评分数据分析仪表板（含R分析复刻）", className="text-center mb-4 mt-4 fw-bold"), width=12)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader(html.H4("A. 性别与逾期状态比例分布", className="mb-0")),
+                dbc.CardBody(dcc.Graph(figure=sex_overdue_fig, style={"height": "400px"}))
+            ], className="mb-4 shadow-sm"),
+            dbc.Card([
+                dbc.CardHeader(html.H4("B. 年龄与违约概率的关系", className="mb-0")),
+                dbc.CardBody(dcc.Graph(figure=hex_fig, style={"height": "400px"}))
+            ], className="mb-4 shadow-sm"),
+            dbc.Card([
+                dbc.CardHeader(html.H4("C. 教育水平与信用评分分布分析", className="mb-0")),
+                dbc.CardBody(dcc.Graph(figure=edu_score_fig, style={"height": "400px"}))
+            ], className="mb-4 shadow-sm"),
+            dbc.Card([
+                dbc.CardHeader(html.H4("D. 收入分组与逾期天数分布分析", className="mb-0")),
+                dbc.CardBody(dcc.Graph(figure=mirror_fig, style={"height": "400px"}))
+            ], className="mb-4 shadow-sm"),
+        ], width=12)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader(html.H4("1. 各地域信贷限额分布", className="mb-0")),
+                dbc.CardBody([
+                    html.Label("选择展示的地区数量:", className="fw-bold"),
+                    dcc.Slider(
+                        id='slider-num-areas',
+                        min=1,
+                        max=len(all_areas),
+                        value=10,
+                        marks={i: f'{i}个' for i in range(1, len(all_areas)+1, 5)},
+                        step=1,
+                        tooltip={"placement": "bottom", "always_visible": True}
+                    ),
+                    dcc.Graph(id='box-plot', style={"height": "400px"})
+                ])
+            ], className="mb-4 shadow-sm")
+        ], width=12)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader(html.H4("2. 收入与信贷限额关系随时间变化", className="mb-0")),
+                dbc.CardBody(
+                    dcc.Graph(figure=px.scatter(
+                        df, 
+                        x='Income', 
+                        y='Initial_Limit', 
+                        color='Living_Area',
+                        animation_frame='year',
+                        size='Probability_of_Default',
+                        hover_name='Settlement_Name',
+                        title='各地域收入与信贷限额关系随时间变化',
+                        labels={'Income': '收入', 'Initial_Limit': '信贷限额', 'Living_Area': '地区', 
+                               'Probability_of_Default': '违约概率', 'year': '年份'},
+                        template='plotly_white'
+                    ).update_layout(
+                        height=700,
+                        width=1200,
+                        xaxis_title='客户收入(元)',
+                        yaxis_title='初始信贷限额(元)',
+                        legend_title='居住地区'
+                    ), style={"height": "500px"})
+                )
+            ], className="mb-4 shadow-sm")
+        ], width=12)
+    ]),
+    dbc.Row([
+        dbc.Col([
+            dbc.Card([
+                dbc.CardHeader(html.H4("3. 各地域平均信贷限额对比", className="mb-0")),
+                dbc.CardBody(
+                    dcc.Graph(
+                        figure=px.bar(
+                            df.groupby('Living_Area')['Initial_Limit'].mean().reset_index(),
+                            x='Living_Area',
+                            y='Initial_Limit',
+                            title='各地域平均信贷限额对比',
+                            labels={'Living_Area': '地区', 'Initial_Limit': '平均信贷限额'},
+                            template='plotly_white'
+                        ).update_layout(
+                            xaxis_tickangle=-45,
+                            height=600,
+                            width=1000,
+                            xaxis_title='居住地区',
+                            yaxis_title='平均初始信贷限额(元)',
+                            showlegend=False
+                        ), style={"height": "500px"})
+                )
+            ], className="mb-4 shadow-sm")
+        ], width=12)
+    ]),
+], fluid=True, style={"background": "#f8f9fa", "minHeight": "100vh"})
 
 # 回调函数：根据滚动条值更新箱线图
 @app.callback(
