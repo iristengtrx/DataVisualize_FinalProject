@@ -150,6 +150,28 @@ mirror_fig.update_yaxes(
     ticktext=[str(max(mirror_df['count'])), "0", str(max(mirror_df['count']))]
 )
 
+# 图5：各地域平均信贷限额对比
+bar_df = df.groupby('Living_Area')['Initial_Limit'].mean().reset_index()
+bar_df = bar_df.sort_values('Initial_Limit', ascending=False)
+bar_fig = px.bar(
+    bar_df,
+    x='Living_Area',
+    y='Initial_Limit',
+    color='Initial_Limit',
+    color_continuous_scale=color_scale,
+    labels={'Living_Area': '地区', 'Initial_Limit': '平均信贷限额'},
+    category_orders={'Living_Area': bar_df['Living_Area'].tolist()}
+)
+bar_fig.update_layout(
+    xaxis_tickangle=-45,
+    xaxis_title='居住地区',
+    yaxis_title='平均初始信贷限额(元)',
+    showlegend=False,
+    template='plotly_white',
+    margin=dict(l=20, r=20, t=60, b=20),
+    title_text=''
+)
+
 # -------- 新增：债务区间与逾期天数分布、阈值效应、收入债务比分析 --------
 # 1. 债务区间与逾期天数分布（堆叠条形图）
 df['Debt_Bin'] = pd.cut(
@@ -415,6 +437,28 @@ def display_page(pathname):
         return geographic_page
     else:
         return demographic_page
+
+# 图5：各地域平均信贷限额对比
+bar_df = df.groupby('Living_Area')['Initial_Limit'].mean().reset_index()
+bar_df = bar_df.sort_values('Initial_Limit', ascending=False)
+bar_fig = px.bar(
+    bar_df,
+    x='Living_Area',
+    y='Initial_Limit',
+    color='Initial_Limit',
+    color_continuous_scale=color_scale,
+    labels={'Living_Area': '地区', 'Initial_Limit': '平均信贷限额'},
+    category_orders={'Living_Area': bar_df['Living_Area'].tolist()}
+)
+bar_fig.update_layout(
+    xaxis_tickangle=-45,
+    xaxis_title='居住地区',
+    yaxis_title='平均初始信贷限额(元)',
+    showlegend=False,
+    template='plotly_white',
+    margin=dict(l=20, r=20, t=60, b=20),
+    title_text=''
+)
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
