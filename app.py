@@ -241,15 +241,9 @@ fig_income_debt = px.scatter(
 import plotly.graph_objs as go
 from pygam import GAM, s
 
-# 假设 ratio_df 是包含 'income_debt_ratio' 和 'Overdue_Days' 列的 DataFrame
-# 示例数据准备（请替换为实际的数据）
-# ratio_df = pd.read_csv('your_data_path.csv')
-
-# 使用 pyGAM 来拟合一个 GAM 模型
-gam = GAM().gridsearch(np.log10(ratio_df['income_debt_ratio'].values.reshape(-1, 1)), 
-                       ratio_df['Overdue_Days'].values, 
-                       lam=np.logspace(-3, 3, num=11),
-                       n_splines=[5])
+# 拟合GAM模型
+gam = GAM(n_splines=5).fit(np.log10(ratio_df['income_debt_ratio'].values.reshape(-1, 1)), 
+                           ratio_df['Overdue_Days'].values)
 XX = gam.generate_X_grid(term=0, n=300)
 predicted = gam.predict(XX)
 
