@@ -221,7 +221,7 @@ fig_debt_threshold.update_layout(
     template='plotly_white',
     margin=dict(l=20, r=20, t=60, b=20), title_text=''
 )
-fig_debt_threshold.update_yaxes(tickformat='.0%', range=[0, 1])
+fig_debt_threshold.update_yaxes(tickformat='.0%', range=[0.10, 0.16])
 fig_debt_threshold.update_xaxes(categoryorder='array', categoryarray=["0-2k", "2k-4k", "4k-6k", "6k-8k", "8k-10k", "10k+"])
 
 # 3. 收入债务比率与逾期天数分析（散点+平滑线）
@@ -294,12 +294,12 @@ geographic_conclusion = dbc.Card(
 # 导航栏
 navbar = dbc.NavbarSimple(
     children=[
+        dbc.NavItem(dbc.NavLink("客户债务与逾期分析", href="/credit-risk", className="fw-bold")),
         dbc.NavItem(dbc.NavLink("人口统计特征", href="/demographic", className="fw-bold")),
         dbc.NavItem(dbc.NavLink("地域特征", href="/geographic", className="fw-bold")),
-        dbc.NavItem(dbc.NavLink("客户债务与逾期分析", href="/credit-risk", className="fw-bold")),
     ],
     brand="银行信用评分 Dashboard",
-    brand_href="/demographic",
+    brand_href="/credit-risk",
     color="primary",
     dark=True,
     className="mb-4 sticky-top"
@@ -369,12 +369,12 @@ geographic_page = html.Div([
         dbc.Row([
             dbc.Col([
                 dbc.Card([
-                    dbc.CardHeader(html.H4("图5. 各地域平均信贷限额对比", className="mb-0 fw-bold")),
+                    dbc.CardHeader(html.H4("图8. 各地域平均信贷限额对比", className="mb-0 fw-bold")),
                     html.Div(analysis_texts[4], className="p-3 mb-2 bg-light rounded"),
                     dbc.CardBody(dcc.Graph(figure=bar_fig, style={"height": "520px"}))
                 ], className="mb-5 shadow-lg rounded-4 border-0"),
                 dbc.Card([
-                    dbc.CardHeader(html.H4("图6. 各地域信贷限额分布（可交互）", className="mb-0 fw-bold")),
+                    dbc.CardHeader(html.H4("图9. 各地域信贷限额分布（可交互）", className="mb-0 fw-bold")),
                     html.Div(analysis_texts[5], className="p-3 mb-2 bg-light rounded"),
                     dbc.CardBody([
                         html.Label("选择展示的地区数量:", className="fw-bold mb-3"),
@@ -428,19 +428,19 @@ data_overview = dbc.Card([
 # 3.1-3.3 分析与可视化（直接复用前面已生成的三个图和分析文字）
 credit_analysis_cards = [
     dbc.Card([
-        dbc.CardHeader(html.H4("3.1 债务区间与逾期天数分布（堆叠条形图）", className="mb-0 fw-bold")),
+        dbc.CardHeader(html.H4("图1. 债务区间与逾期天数分布（堆叠条形图）", className="mb-0 fw-bold")),
         html.Div("为直观展示不同债务水平客户的逾期情况分布，我们首先采用堆叠条形图呈现各债务区间内客户的逾期天数构成。这种可视化方法可以同时展示债务区间的客户数量分布和逾期严重程度的构成比例。", className="p-3 mb-2 bg-light rounded"),
         dbc.CardBody(dcc.Graph(figure=fig_debt_overdue, style={"height": "520px"})),
         html.Div(analysis_texts[6], className="p-3 mb-2 bg-light rounded")
     ], className="mb-5 shadow-lg rounded-4 border-0"),
     dbc.Card([
-        dbc.CardHeader(html.H4("3.2 债务阈值效应分析（逾期率趋势图）", className="mb-0 fw-bold")),
+        dbc.CardHeader(html.H4("图2. 不同债务区间的客户逾期率（逾期率趋势图）", className="mb-0 fw-bold")),
         html.Div("为验证\"债务阈值\"假设—即是否存在某一债务水平，超过该水平后逾期概率会显著上升，我们绘制了各债务区间的逾期率趋势线图。该分析有助于识别风险管理的临界点。", className="p-3 mb-2 bg-light rounded"),
         dbc.CardBody(dcc.Graph(figure=fig_debt_threshold, style={"height": "520px"})),
         html.Div(analysis_texts[7], className="p-3 mb-2 bg-light rounded")
     ], className="mb-5 shadow-lg rounded-4 border-0"),
     dbc.Card([
-        dbc.CardHeader(html.H4("3.3 收入债务比率与逾期天数分析", className="mb-0 fw-bold")),
+        dbc.CardHeader(html.H4("图3. 收入债务比率与逾期天数分析", className="mb-0 fw-bold")),
         html.Div("为探究客户的财务健康度对逾期行为的影响，我们构建了收入债务比率（月收入/总债务）指标。该指标能够反映客户的偿债能力，理论上比率越低意味着偿债压力越大。通过散点图结合平滑曲线，可以直观展示财务压力与逾期行为的非线性关系。", className="p-3 mb-2 bg-light rounded"),
         dbc.CardBody(dcc.Graph(figure=fig_income_debt, style={"height": "520px"})),
         html.Div(analysis_texts[8], className="p-3 mb-2 bg-light rounded")
@@ -526,7 +526,7 @@ def display_page(pathname):
     elif pathname == '/credit-risk':
         return credit_risk_page
     else:
-        return demographic_page
+        return credit_risk_page
 
 
 # if __name__ == '__main__':
