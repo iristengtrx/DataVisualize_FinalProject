@@ -128,37 +128,52 @@ mirror_fig.update_layout(
 )
 mirror_fig.update_yaxes(tickvals=[-max(mirror_df['count']), 0, max(mirror_df['count'])], ticktext=[str(max(mirror_df['count'])), "0", str(max(mirror_df['count']))])
 
+# 顶部导航栏
+navbar = dbc.NavbarSimple(
+    brand="银行信用评分 Dashboard",
+    color="primary",
+    dark=True,
+    className="mb-4"
+)
+
 # 布局设置
-app.layout = dbc.Container([
+app.layout = html.Div([
+    navbar,
+dbc.Container([
     dbc.Row([
-        dbc.Col(html.H1("银行信用评分数据分析仪表板（含R分析复刻）", className="text-center mb-5 mt-4 fw-bold"), width=12)
+        dbc.Col(
+            html.H1("银行信用评分数据分析仪表板（含R分析复刻）", 
+                className="text-center mb-4 mt-4 fw-bold",
+                style={"fontSize": "2.8rem", "letterSpacing": "2px", "color": "#2d3142"}
+            ), width=12
+        )
     ]),
     dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardHeader(html.H4("A. 性别与逾期状态比例分布", className="mb-0")),
-                dbc.CardBody(dcc.Graph(figure=sex_overdue_fig, style={"height": "300px", "width": "100%"}))
-            ], className="mb-5 shadow-sm"),
+                dbc.CardHeader(html.H4("A. 性别与逾期状态比例分布", className="mb-0 fw-bold")),
+                dbc.CardBody(dcc.Graph(figure=sex_overdue_fig, style={"height": "520px", "width": "100%"}))
+            ], className="mb-5 shadow-lg rounded-4 border-0"),
             dbc.Card([
-                dbc.CardHeader(html.H4("B. 年龄与违约概率的关系", className="mb-0")),
-                dbc.CardBody(dcc.Graph(figure=hex_fig, style={"height": "300px", "width": "100%"}))
-            ], className="mb-5 shadow-sm"),
+                dbc.CardHeader(html.H4("B. 年龄与违约概率的关系", className="mb-0 fw-bold")),
+                dbc.CardBody(dcc.Graph(figure=hex_fig, style={"height": "520px", "width": "100%"}))
+            ], className="mb-5 shadow-lg rounded-4 border-0"),
             dbc.Card([
-                dbc.CardHeader(html.H4("C. 教育水平与信用评分分布分析", className="mb-0")),
-                dbc.CardBody(dcc.Graph(figure=edu_score_fig, style={"height": "300px", "width": "100%"}))
-            ], className="mb-5 shadow-sm"),
+                dbc.CardHeader(html.H4("C. 教育水平与信用评分分布分析", className="mb-0 fw-bold")),
+                dbc.CardBody(dcc.Graph(figure=edu_score_fig, style={"height": "520px", "width": "100%"}))
+            ], className="mb-5 shadow-lg rounded-4 border-0"),
             dbc.Card([
-                dbc.CardHeader(html.H4("D. 收入分组与逾期天数分布分析", className="mb-0")),
-                dbc.CardBody(dcc.Graph(figure=mirror_fig, style={"height": "300px", "width": "100%"}))
-            ], className="mb-5 shadow-sm"),
+                dbc.CardHeader(html.H4("D. 收入分组与逾期天数分布分析", className="mb-0 fw-bold")),
+                dbc.CardBody(dcc.Graph(figure=mirror_fig, style={"height": "520px", "width": "100%"}))
+            ], className="mb-5 shadow-lg rounded-4 border-0"),
         ], width=12)
     ], className="mb-5"),
     dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardHeader(html.H4("1. 各地域信贷限额分布", className="mb-0")),
+                dbc.CardHeader(html.H4("1. 各地域信贷限额分布", className="mb-0 fw-bold")),
                 dbc.CardBody([
-                    html.Label("选择展示的地区数量:", className="fw-bold"),
+                    html.Label("选择展示的地区数量:", className="fw-bold mb-3"),
                     dcc.Slider(
                         id='slider-num-areas',
                         min=1,
@@ -168,15 +183,15 @@ app.layout = dbc.Container([
                         step=1,
                         tooltip={"placement": "bottom", "always_visible": True}
                     ),
-                    dcc.Graph(id='box-plot', style={"height": "300px", "width": "100%"})
+                    dcc.Graph(id='box-plot', style={"height": "520px", "width": "100%"})
                 ])
-            ], className="mb-5 shadow-sm")
+            ], className="mb-5 shadow-lg rounded-4 border-0")
         ], width=12)
     ], className="mb-5"),
     dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardHeader(html.H4("2. 收入与信贷限额关系随时间变化", className="mb-0")),
+                dbc.CardHeader(html.H4("2. 收入与信贷限额关系随时间变化", className="mb-0 fw-bold")),
                 dbc.CardBody(
                     dcc.Graph(figure=px.scatter(
                         df, 
@@ -191,20 +206,20 @@ app.layout = dbc.Container([
                                'Probability_of_Default': '违约概率', 'year': '年份'},
                         template='plotly_white'
                     ).update_layout(
-                        height=400,
-                        width=800,
+                        height=600,
+                        width=1000,
                         xaxis_title='客户收入(元)',
                         yaxis_title='初始信贷限额(元)',
                         legend_title='居住地区'
-                    ), style={"height": "320px", "width": "100%"})
+                    ), style={"height": "540px", "width": "100%"})
                 )
-            ], className="mb-5 shadow-sm")
+            ], className="mb-5 shadow-lg rounded-4 border-0")
         ], width=12)
     ], className="mb-5"),
     dbc.Row([
         dbc.Col([
             dbc.Card([
-                dbc.CardHeader(html.H4("3. 各地域平均信贷限额对比", className="mb-0")),
+                dbc.CardHeader(html.H4("3. 各地域平均信贷限额对比", className="mb-0 fw-bold")),
                 dbc.CardBody(
                     dcc.Graph(
                         figure=px.bar(
@@ -216,17 +231,18 @@ app.layout = dbc.Container([
                             template='plotly_white'
                         ).update_layout(
                             xaxis_tickangle=-45,
-                            height=400,
-                            width=800,
+                            height=600,
+                            width=1000,
                             xaxis_title='居住地区',
                             yaxis_title='平均初始信贷限额(元)',
                             showlegend=False
-                        ), style={"height": "320px", "width": "100%"})
+                        ), style={"height": "540px", "width": "100%"})
                 )
-            ], className="mb-5 shadow-sm")
+            ], className="mb-5 shadow-lg rounded-4 border-0")
         ], width=12)
     ], className="mb-5"),
-], fluid=True, style={"background": "#f8f9fa", "minHeight": "100vh"})
+], fluid=True, style={"background": "#f8f9fa", "minHeight": "100vh", "paddingBottom": "40px"})
+])
 
 # 回调函数：根据滚动条值更新箱线图
 @app.callback(
