@@ -128,38 +128,65 @@ mirror_fig.update_yaxes(tickvals=[-max(mirror_df['count']), 0, max(mirror_df['co
 
 # 布局设置
 app.layout = html.Div([
-    html.H1("银行信用评分数据分析仪表板（含R分析复刻）"),
+    html.H1(
+        "银行信用评分数据分析仪表板（含R分析复刻）",
+        style={
+            'textAlign': 'center',
+            'fontWeight': 'bold',
+            'fontSize': '2.5rem',
+            'marginBottom': '30px',
+            'color': '#22223b',
+            'letterSpacing': '2px'
+        }
+    ),
 
     # 新增R分析复刻图表
     html.Div([
-        html.H3("A. 性别与逾期状态比例分布"),
-        dcc.Graph(figure=sex_overdue_fig),
-        html.H3("B. 年龄与违约概率的关系"),
-        dcc.Graph(figure=hex_fig),
-        html.H3("C. 教育水平与信用评分分布分析"),
-        dcc.Graph(figure=edu_score_fig),
-        html.H3("D. 收入分组与逾期天数分布分析"),
-        dcc.Graph(figure=mirror_fig),
-    ], style={'width': '100%', 'display': 'inline-block'}),
+        html.H3("A. 性别与逾期状态比例分布", style={'textAlign': 'left', 'color': '#4f4f4f', 'marginTop': '20px'}),
+        dcc.Graph(figure=sex_overdue_fig, style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'}),
+        html.H3("B. 年龄与违约概率的关系", style={'textAlign': 'left', 'color': '#4f4f4f', 'marginTop': '30px'}),
+        dcc.Graph(figure=hex_fig, style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'}),
+        html.H3("C. 教育水平与信用评分分布分析", style={'textAlign': 'left', 'color': '#4f4f4f', 'marginTop': '30px'}),
+        dcc.Graph(figure=edu_score_fig, style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'}),
+        html.H3("D. 收入分组与逾期天数分布分析", style={'textAlign': 'left', 'color': '#4f4f4f', 'marginTop': '30px'}),
+        dcc.Graph(figure=mirror_fig, style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'}),
+    ], style={
+        'width': '90%',
+        'margin': 'auto',
+        'background': '#f8f9fa',
+        'padding': '30px 20px 30px 20px',
+        'borderRadius': '15px',
+        'boxShadow': '0 4px 24px #e0e0e0',
+        'marginBottom': '40px'
+    }),
 
     # 箱线图部分
     html.Div([
-        html.H3("1. 各地域信贷限额分布"),
-        html.Label("选择展示的地区数量:"),
+        html.H3("1. 各地域信贷限额分布", style={'color': '#4f4f4f'}),
+        html.Label("选择展示的地区数量:", style={'fontWeight': 'bold'}),
         dcc.Slider(
             id='slider-num-areas',
             min=1,
             max=len(all_areas),
             value=10,  # 默认值
             marks={i: f'{i}个' for i in range(1, len(all_areas)+1, 5)},
-            step=1
+            step=1,
+            tooltip={"placement": "bottom", "always_visible": True}
         ),
-        dcc.Graph(id='box-plot')
-    ], style={'width': '100%', 'display': 'inline-block'}),
+        dcc.Graph(id='box-plot', style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'})
+    ], style={
+        'width': '90%',
+        'margin': 'auto',
+        'background': '#f8f9fa',
+        'padding': '30px 20px 30px 20px',
+        'borderRadius': '15px',
+        'boxShadow': '0 4px 24px #e0e0e0',
+        'marginBottom': '40px'
+    }),
     
     # 散点图部分
     html.Div([
-        html.H3("2. 收入与信贷限额关系随时间变化"),
+        html.H3("2. 收入与信贷限额关系随时间变化", style={'color': '#4f4f4f'}),
         dcc.Graph(figure=px.scatter(
             df, 
             x='Income', 
@@ -178,12 +205,20 @@ app.layout = html.Div([
             xaxis_title='客户收入(元)',
             yaxis_title='初始信贷限额(元)',
             legend_title='居住地区'
-        ))
-    ], style={'width': '100%', 'display': 'inline-block'}),
+        ), style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'})
+    ], style={
+        'width': '90%',
+        'margin': 'auto',
+        'background': '#f8f9fa',
+        'padding': '30px 20px 30px 20px',
+        'borderRadius': '15px',
+        'boxShadow': '0 4px 24px #e0e0e0',
+        'marginBottom': '40px'
+    }),
     
     # 条形图部分
     html.Div([
-        html.H3("3. 各地域平均信贷限额对比"),
+        html.H3("3. 各地域平均信贷限额对比", style={'color': '#4f4f4f'}),
         dcc.Graph(
             figure=px.bar(
                 df.groupby('Living_Area')['Initial_Limit'].mean().reset_index(),
@@ -199,10 +234,17 @@ app.layout = html.Div([
                 xaxis_title='居住地区',
                 yaxis_title='平均初始信贷限额(元)',
                 showlegend=False
-            )
-        )
-    ], style={'width': '100%', 'display': 'inline-block'}),
-])
+            ), style={'boxShadow': '0 2px 8px #e0e0e0', 'borderRadius': '10px', 'background': '#fff'})
+    ], style={
+        'width': '90%',
+        'margin': 'auto',
+        'background': '#f8f9fa',
+        'padding': '30px 20px 30px 20px',
+        'borderRadius': '15px',
+        'boxShadow': '0 4px 24px #e0e0e0',
+        'marginBottom': '40px'
+    }),
+], style={'background': '#edf2fb', 'minHeight': '100vh'})
 
 # 回调函数：根据滚动条值更新箱线图
 @app.callback(
