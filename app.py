@@ -217,8 +217,8 @@ geographic_conclusion = dbc.Card(
 # 导航栏
 navbar = dbc.NavbarSimple(
     children=[
-        dbc.NavItem(dbc.NavLink("人口统计特征", href="#", id="demographic-link", className="fw-bold")),
-        dbc.NavItem(dbc.NavLink("地域特征", href="#", id="geographic-link", className="fw-bold"))
+        dbc.NavItem(dbc.NavLink("人口统计特征", id="demographic-link", className="fw-bold")),
+        dbc.NavItem(dbc.NavLink("地域特征", id="geographic-link", className="fw-bold"))
     ],
     brand="银行信用评分 Dashboard",
     brand_href="#",
@@ -346,7 +346,8 @@ def update_graph(num_areas):
 )
 def display_page(pathname, demog_clicks, geo_clicks):
     ctx = callback_context
-    if not ctx.triggered:
+    # 如果没有任何点击，或页面初次加载，显示人口统计特征页
+    if not ctx.triggered or (demog_clicks is None and geo_clicks is None):
         return demographic_page
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
