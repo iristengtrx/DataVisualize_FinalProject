@@ -295,7 +295,8 @@ geographic_conclusion = dbc.Card(
 navbar = dbc.NavbarSimple(
     children=[
         dbc.NavItem(dbc.NavLink("人口统计特征", href="/demographic", className="fw-bold")),
-        dbc.NavItem(dbc.NavLink("地域特征", href="/geographic", className="fw-bold"))
+        dbc.NavItem(dbc.NavLink("地域特征", href="/geographic", className="fw-bold")),
+        dbc.NavItem(dbc.NavLink("客户债务与逾期分析", href="/credit-risk", className="fw-bold")),
     ],
     brand="银行信用评分 Dashboard",
     brand_href="/demographic",
@@ -394,6 +395,91 @@ geographic_page = html.Div([
     ], fluid=True, style={"background": "#f8f9fa", "minHeight": "100vh", "paddingBottom": "40px"})
 ])
 
+# ========== 新增：客户债务与逾期行为分析页面 ==========
+# 1. 研究背景与意义
+credit_risk_intro = dbc.Card([
+    dbc.CardBody([
+        html.H4("基于多维特征的客户信贷风险分析与可视化报告", className="card-title text-center mb-4"),
+        html.P("客户债务分布与逾期行为的关系", className="text-center mb-4 fw-bold"),
+        html.P("在现代金融风险管理中，信贷风险评估是银行和金融机构的核心业务之一。随着金融科技的快速发展，传统信贷评分模型已无法完全满足风险管理的需求。根据世界银行2022年全球金融发展报告，全球范围内约有17%的贷款会出现不同程度的逾期情况，其中约5%会发展为不良贷款。因此，深入分析客户债务特征与逾期行为之间的关系，对于提高银行风险管理能力、优化信贷决策具有重要实践价值。", className="card-text"),
+        html.P("本报告基于某金融机构18,420名客户的信贷数据，重点分析客户债务水平与逾期行为之间的关系，旨在回答以下关键问题：", className="card-text"),
+        html.Ul([
+            html.Li("不同债务水平的客户在逾期行为上是否存在显著差异？"),
+            html.Li("是否存在特定的债务阈值，超过该阈值后客户逾期风险会显著增加？"),
+            html.Li("如何通过可视化方法直观展示债务与逾期行为的关系模式？")
+        ])
+    ])
+], className="mb-5 shadow-lg border-0", style={"background": "linear-gradient(to right, #f8f9fa, #e9ecef)"})
+
+# 2. 数据概述
+data_overview = dbc.Card([
+    dbc.CardBody([
+        html.H5("数据概述", className="card-title mb-3"),
+        html.P("本分析使用的数据集包含18,420条客户记录，涉及18个变量。核心变量包括：", className="card-text"),
+        html.Ul([
+            html.Li("Задолженность (债务金额)：客户当前总债务水平（货币单位）"),
+            html.Li("Просрочка, дни (逾期天数)：客户当前贷款逾期天数"),
+            html.Li("INCOME (收入)：客户月收入"),
+            html.Li("SCORINGMARK (信用评分)：客户信用评分")
+        ])
+    ])
+], className="mb-5 shadow-lg border-0", style={"background": "linear-gradient(to right, #f8f9fa, #e9ecef)"})
+
+# 3.1-3.3 分析与可视化（直接复用前面已生成的三个图和分析文字）
+credit_analysis_cards = [
+    dbc.Card([
+        dbc.CardHeader(html.H4("3.1 债务区间与逾期天数分布（堆叠条形图）", className="mb-0 fw-bold")),
+        html.Div("为直观展示不同债务水平客户的逾期情况分布，我们首先采用堆叠条形图呈现各债务区间内客户的逾期天数构成。这种可视化方法可以同时展示债务区间的客户数量分布和逾期严重程度的构成比例。", className="p-3 mb-2 bg-light rounded"),
+        dbc.CardBody(dcc.Graph(figure=fig_debt_overdue, style={"height": "520px"})),
+        html.Div(analysis_texts[6], className="p-3 mb-2 bg-light rounded")
+    ], className="mb-5 shadow-lg rounded-4 border-0"),
+    dbc.Card([
+        dbc.CardHeader(html.H4("3.2 债务阈值效应分析（逾期率趋势图）", className="mb-0 fw-bold")),
+        html.Div("为验证\"债务阈值\"假设—即是否存在某一债务水平，超过该水平后逾期概率会显著上升，我们绘制了各债务区间的逾期率趋势线图。该分析有助于识别风险管理的临界点。", className="p-3 mb-2 bg-light rounded"),
+        dbc.CardBody(dcc.Graph(figure=fig_debt_threshold, style={"height": "520px"})),
+        html.Div(analysis_texts[7], className="p-3 mb-2 bg-light rounded")
+    ], className="mb-5 shadow-lg rounded-4 border-0"),
+    dbc.Card([
+        dbc.CardHeader(html.H4("3.3 收入债务比率与逾期天数分析", className="mb-0 fw-bold")),
+        html.Div("为探究客户的财务健康度对逾期行为的影响，我们构建了收入债务比率（月收入/总债务）指标。该指标能够反映客户的偿债能力，理论上比率越低意味着偿债压力越大。通过散点图结合平滑曲线，可以直观展示财务压力与逾期行为的非线性关系。", className="p-3 mb-2 bg-light rounded"),
+        dbc.CardBody(dcc.Graph(figure=fig_income_debt, style={"height": "520px"})),
+        html.Div(analysis_texts[8], className="p-3 mb-2 bg-light rounded")
+    ], className="mb-5 shadow-lg rounded-4 border-0")
+]
+
+# 4. 主要发现
+credit_findings = dbc.Card([
+    dbc.CardBody([
+        html.H5("主要发现", className="card-title mb-3"),
+        html.Ul([
+            html.Li("债务-逾期关系的分析中，我们揭示了债务水平与逾期风险之间并非简单的线性关系，中等债务水平（4k-6k）的客户反而表现出最高的逾期风险。"),
+            html.Li("在债务阈值效应分析中，我们确认了债务阈值的存在，特别是6k左右的债务水平可能代表了风险特征的转变点。"),
+            html.Li("在收入债务比率与逾期天数分析中，我们识别出了逾期天数随着收入债务比率先下降再上升的趋势，这提示我们对还债压力小的人群也需要加强早期风险干预，建立预警机制。")
+        ])
+    ])
+], className="mb-5 shadow-lg border-0", style={"background": "linear-gradient(to right, #f8f9fa, #e9ecef)"})
+
+credit_risk_page = html.Div([
+    navbar,
+    dbc.Container([
+        dbc.Row([
+            dbc.Col(html.H1("客户债务与逾期行为分析", className="text-center my-4 fw-bold"), width=12)
+        ]),
+        dbc.Row([
+            dbc.Col(credit_risk_intro, width=12)
+        ]),
+        dbc.Row([
+            dbc.Col(data_overview, width=12)
+        ]),
+        dbc.Row([
+            dbc.Col(card, width=12) for card in credit_analysis_cards
+        ]),
+        dbc.Row([
+            dbc.Col(credit_findings, width=12)
+        ])
+    ], fluid=True, style={"background": "#f8f9fa", "minHeight": "100vh", "paddingBottom": "40px"})
+])
+
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id='page-content')
@@ -435,30 +521,13 @@ def update_graph(num_areas):
 def display_page(pathname):
     if pathname == '/geographic':
         return geographic_page
+    elif pathname == '/demographic':
+        return demographic_page
+    elif pathname == '/credit-risk':
+        return credit_risk_page
     else:
         return demographic_page
 
-# 图5：各地域平均信贷限额对比
-bar_df = df.groupby('Living_Area')['Initial_Limit'].mean().reset_index()
-bar_df = bar_df.sort_values('Initial_Limit', ascending=False)
-bar_fig = px.bar(
-    bar_df,
-    x='Living_Area',
-    y='Initial_Limit',
-    color='Initial_Limit',
-    color_continuous_scale=color_scale,
-    labels={'Living_Area': '地区', 'Initial_Limit': '平均信贷限额'},
-    category_orders={'Living_Area': bar_df['Living_Area'].tolist()}
-)
-bar_fig.update_layout(
-    xaxis_tickangle=-45,
-    xaxis_title='居住地区',
-    yaxis_title='平均初始信贷限额(元)',
-    showlegend=False,
-    template='plotly_white',
-    margin=dict(l=20, r=20, t=60, b=20),
-    title_text=''
-)
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
