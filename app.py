@@ -338,9 +338,11 @@ def update_graph(num_areas):
 # 页面切换回调
 @app.callback(
     Output('page-content', 'children'),
-    [Input('url', 'pathname')],
-    [Input('demographic-link', 'n_clicks')],
-    [Input('geographic-link', 'n_clicks')]
+    [
+        Input('url', 'pathname'),
+        Input('demographic-link', 'n_clicks'),
+        Input('geographic-link', 'n_clicks')
+    ]
 )
 def display_page(pathname, demog_clicks, geo_clicks):
     ctx = callback_context
