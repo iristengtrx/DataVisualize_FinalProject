@@ -365,21 +365,21 @@ demographic_page = html.Div([
                     html.Div(analysis_texts[3], className="p-3 mb-2 bg-light rounded"),
                     dbc.CardBody(dcc.Graph(figure=mirror_fig, style={"height": "520px"}))
                 ], className="mb-5 shadow-lg rounded-4 border-0"),
-                dbc.Card([
-                    dbc.CardHeader(html.H4("图5. 债务区间与逾期天数分布", className="mb-0 fw-bold")),
-                    html.Div(analysis_texts[6], className="p-3 mb-2 bg-light rounded"),
-                    dbc.CardBody(dcc.Graph(figure=fig_debt_overdue, style={"height": "520px"}))
-                ], className="mb-5 shadow-lg rounded-4 border-0"),
-                dbc.Card([
-                    dbc.CardHeader(html.H4("图6. 债务阈值效应分析", className="mb-0 fw-bold")),
-                    html.Div(analysis_texts[7], className="p-3 mb-2 bg-light rounded"),
-                    dbc.CardBody(dcc.Graph(figure=fig_debt_threshold, style={"height": "520px"}))
-                ], className="mb-5 shadow-lg rounded-4 border-0"),
-                dbc.Card([
-                    dbc.CardHeader(html.H4("图7. 收入债务比率与逾期天数分析", className="mb-0 fw-bold")),
-                    html.Div(analysis_texts[8], className="p-3 mb-2 bg-light rounded"),
-                    dbc.CardBody(dcc.Graph(figure=fig_income_debt, style={"height": "520px"}))
-                ], className="mb-5 shadow-lg rounded-4 border-0")
+                # dbc.Card([
+                #     dbc.CardHeader(html.H4("图5. 债务区间与逾期天数分布", className="mb-0 fw-bold")),
+                #     html.Div(analysis_texts[6], className="p-3 mb-2 bg-light rounded"),
+                #     dbc.CardBody(dcc.Graph(figure=fig_debt_overdue, style={"height": "520px"}))
+                # ], className="mb-5 shadow-lg rounded-4 border-0"),
+                # dbc.Card([
+                #     dbc.CardHeader(html.H4("图6. 债务阈值效应分析", className="mb-0 fw-bold")),
+                #     html.Div(analysis_texts[7], className="p-3 mb-2 bg-light rounded"),
+                #     dbc.CardBody(dcc.Graph(figure=fig_debt_threshold, style={"height": "520px"}))
+                # ], className="mb-5 shadow-lg rounded-4 border-0"),
+                # dbc.Card([
+                #     dbc.CardHeader(html.H4("图7. 收入债务比率与逾期天数分析", className="mb-0 fw-bold")),
+                #     html.Div(analysis_texts[8], className="p-3 mb-2 bg-light rounded"),
+                #     dbc.CardBody(dcc.Graph(figure=fig_income_debt, style={"height": "520px"}))
+                # ], className="mb-5 shadow-lg rounded-4 border-0")
             ], width=12)
         ])
     ], fluid=True, style={"background": "#f8f9fa", "minHeight": "100vh", "paddingBottom": "40px"})
@@ -513,6 +513,9 @@ app.layout = html.Div([
     html.Div(id='page-content')
 ])
 
+
+
+
 # 回调函数：根据滚动条值更新箱线图
 @app.callback(
     Output('box-plot', 'figure'),
@@ -553,6 +556,8 @@ def display_page(pathname):
         return demographic_page
     elif pathname == '/credit-risk':
         return credit_risk_page
+    elif pathname == '/team':
+        return team_page
     else:
         return credit_risk_page
 
