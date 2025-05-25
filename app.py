@@ -325,6 +325,7 @@ navbar = dbc.NavbarSimple(
         dbc.NavItem(dbc.NavLink("客户债务与逾期分析", href="/credit-risk", className="fw-bold")),
         dbc.NavItem(dbc.NavLink("人口统计特征", href="/demographic", className="fw-bold")),
         dbc.NavItem(dbc.NavLink("地域特征", href="/geographic", className="fw-bold")),
+        dbc.NavItem(dbc.NavLink("小组分工", href="/team", className="fw-bold text-warning")),
     ],
     brand="银行信用评分 Dashboard",
     brand_href="/credit-risk",
@@ -513,7 +514,39 @@ app.layout = html.Div([
     html.Div(id='page-content')
 ])
 
-
+team_page = html.Div([
+    navbar,
+    dbc.Container([
+        dbc.Row([
+            dbc.Col(html.H1("小组分工", className="text-center my-4 fw-bold"), width=12)
+        ]),
+        dbc.Row([
+            dbc.Col(
+                dbc.Card([
+                    dbc.CardBody([
+                        html.H4("成员与任务分工", className="card-title text-center mb-4"),
+                        dbc.ListGroup([
+                            dbc.ListGroupItem([
+                                html.Span("1. 井语若", className="fw-bold me-2 text-primary"),
+                                html.Span("客户债务与逾期分析可视化代码、PPT制作")
+                            ], className="py-3 px-4 border-0 bg-light rounded mb-2 shadow-sm"),
+                            dbc.ListGroupItem([
+                                html.Span("2. 乔一诺", className="fw-bold me-2 text-success"),
+                                html.Span("人口统计特征分析可视化代码、口头汇报")
+                            ], className="py-3 px-4 border-0 bg-light rounded mb-2 shadow-sm"),
+                            dbc.ListGroupItem([
+                                html.Span("3. 滕若萱", className="fw-bold me-2 text-info"),
+                                html.Span("地域特征分析可视化代码、html报告制作、口头汇报")
+                            ], className="py-3 px-4 border-0 bg-light rounded shadow-sm")
+                        ], className="border-0"),
+                        html.Div("感谢每位成员的辛勤付出！", className="text-center mt-4 fw-bold text-secondary")
+                    ])
+                ], className="shadow-lg rounded-4 border-0", style={"background": "linear-gradient(to right, #f8f9fa, #e9ecef)"}),
+                width=8, className="offset-2"
+            )
+        ])
+    ], fluid=True, style={"background": "#f8f9fa", "minHeight": "100vh", "paddingBottom": "40px"})
+])                        
 
 
 # 回调函数：根据滚动条值更新箱线图
