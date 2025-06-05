@@ -49,6 +49,25 @@ df['year'] = np.random.choice(range(2018, 2023), size=len(df))
 color_sequence = px.colors.qualitative.Set2
 color_scale = px.colors.sequential.YlGnBu
 
+# 俄语地区名到标准中文的映射（自动合并同义项）
+area_ru2zh = {
+    # 明斯克市
+    'г. Минск': '明斯克', 'Г. МИНСК': '明斯克', 'МИНСК': '明斯克',
+    # 明斯克州
+    'Минская область': '明斯克州', 'МИНСКАЯ': '明斯克州', 'МИНСКАЯ ОБЛАСТЬ': '明斯克州', 'Минская': '明斯克州',
+    # 戈梅利州
+    'Гомельская область': '戈梅利州', 'ГОМЕЛЬСКАЯ': '戈梅利州', 'ГОМЕЛЬСКАЯ ОБЛАСТЬ': '戈梅利州', 'Гомельская': '戈梅利州', 'ГОМЕЛЬСКАЯ ОБЛ': '戈梅利州',
+    # 布列斯特州
+    'Брестская область': '布列斯特州', 'БРЕСТСКАЯ': '布列斯特州', 'БРЕСТСКАЯ ОБЛАСТЬ': '布列斯特州', 'Брестская': '布列斯特州',
+    # 维捷布斯克州
+    'Витебская область': '维捷布斯克州', 'ВИТЕБСКАЯ': '维捷布斯克州', 'ВИТЕБСКАЯ ОБЛАСТЬ': '维捷布斯克州', 'Витебская': '维捷布斯克州',
+    # 格罗德诺州
+    'Гродненская область': '格罗德诺州', 'ГРОДНЕНСКАЯ': '格罗德诺州', 'ГРОДНЕНСКАЯ ОБЛАСТЬ': '格罗德诺州', 'Гродненская': '格罗德诺州',
+    # 莫吉廖夫州
+    'Могилевская область': '莫吉廖夫州', 'МОГИЛЕВСКАЯ': '莫吉廖夫州', 'МОГИЛЕВСКАЯ ОБЛАСТЬ': '莫吉廖夫州', 'МОГИЛЁВСКАЯ': '莫吉廖夫州', 'Могилевская': '莫吉廖夫州', 'МОГИЛЕВСК': '莫吉廖夫州',
+}
+df['地区'] = df['Living_Area'].map(area_ru2zh)
+
 # 图1：性别与逾期状态比例分布
 df_clean = df.dropna(subset=['Sex', 'Overdue_Group'])
 grouped = df_clean.groupby(['Sex', 'Overdue_Group']).size().reset_index(name='count')
@@ -154,16 +173,16 @@ mirror_fig.update_yaxes(
 )
 
 # 图5：各地域平均信贷限额对比
-bar_df = df.groupby('Living_Area')['Initial_Limit'].mean().reset_index()
+bar_df = df.groupby('地区')['Initial_Limit'].mean().reset_index()
 bar_df = bar_df.sort_values('Initial_Limit', ascending=False)
 bar_fig = px.bar(
     bar_df,
-    x='Living_Area',
+    x='地区',
     y='Initial_Limit',
     color='Initial_Limit',
     color_continuous_scale=color_scale,
-    labels={'Living_Area': '地区', 'Initial_Limit': '平均信贷限额'},
-    category_orders={'Living_Area': bar_df['Living_Area'].tolist()}
+    labels={'地区': '地区', 'Initial_Limit': '平均信贷限额'},
+    category_orders={'地区': bar_df['地区'].tolist()}
 )
 bar_fig.update_layout(
     xaxis_tickangle=-45,
@@ -179,12 +198,12 @@ scatter_income_limit_fig = px.scatter(
     df,
     x='Income',
     y='Initial_Limit',
-    color='Living_Area',
+    color='地区',
     animation_frame='year',
     size='Probability_of_Default',
     hover_name='Settlement_Name',
     title='各地域收入与信贷限额关系随时间变化',
-    labels={'Income': '收入', 'Initial_Limit': '信贷限额', 'Living_Area': '地区', 'Probability_of_Default': '违约概率', 'year': '年份'},
+    labels={'Income': '收入', 'Initial_Limit': '信贷限额', '地区': '地区', 'Probability_of_Default': '违约概率', 'year': '年份'},
     template='plotly_white'
 )
 scatter_income_limit_fig.update_layout(
@@ -566,14 +585,14 @@ team_page = html.Div([
     [Input('slider-num-areas', 'value')]
 )
 def update_graph(num_areas):
-    top_areas = all_areas[:num_areas]
-    filtered_df = df[df['Living_Area'].isin(top_areas)]
+    top_areas = bar_df['地区'].tolist()[:num_areas]
+    filtered_df = df[df['地区'].isin(top_areas)]
     fig = px.box(
         filtered_df,
-        x='Living_Area',
+        x='地区',
         y='Initial_Limit',
-        color='Living_Area',
-        labels={'Living_Area': '居住地区', 'Initial_Limit': '初始信贷限额'},
+        color='地区',
+        labels={'地区': '居住地区', 'Initial_Limit': '初始信贷限额'},
         template='plotly_white',
         color_discrete_sequence=color_sequence
     )
