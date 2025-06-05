@@ -180,19 +180,19 @@ scatter_income_limit_fig = px.scatter(
     x='Income',
     y='Initial_Limit',
     color='Living_Area',
-                                    animation_frame='year',
+    animation_frame='year',
     size='Probability_of_Default',
     hover_name='Settlement_Name',
-                                    title='各地域收入与信贷限额关系随时间变化',
+    title='各地域收入与信贷限额关系随时间变化',
     labels={'Income': '收入', 'Initial_Limit': '信贷限额', 'Living_Area': '地区', 'Probability_of_Default': '违约概率', 'year': '年份'},
     template='plotly_white'
 )
 scatter_income_limit_fig.update_layout(
-                                        height=700,
-                                        width=1200,
-                                        xaxis_title='客户收入(元)',
-                                        yaxis_title='初始信贷限额(元)',
-                                        legend_title='居住地区'
+    height=700,
+    width=1200,
+    xaxis_title='客户收入(元)',
+    yaxis_title='初始信贷限额(元)',
+    legend_title='居住地区'
 )
 
 
@@ -340,27 +340,6 @@ geographic_conclusion = dbc.Card(
     style={"background": "linear-gradient(to right, #f8f9fa, #e9ecef)"}
 )
 
-# 在 geographic_page 定义前，先创建动态散点图对象
-scatter_income_limit_fig = px.scatter(
-    df,
-    x='Income',
-    y='Initial_Limit',
-    color='Living_Area',
-    animation_frame='year',
-    size='Probability_of_Default',
-    hover_name='Settlement_Name',
-    title='各地域收入与信贷限额关系随时间变化',
-    labels={'Income': '收入', 'Initial_Limit': '信贷限额', 'Living_Area': '地区', 'Probability_of_Default': '违约概率', 'year': '年份'},
-    template='plotly_white'
-)
-scatter_income_limit_fig.update_layout(
-    height=700,
-    width=1200,
-    xaxis_title='客户收入(元)',
-    yaxis_title='初始信贷限额(元)',
-    legend_title='居住地区'
-)
-
 # 导航栏
 navbar = dbc.NavbarSimple(
     children=[
@@ -422,48 +401,37 @@ geographic_page = html.Div([
         dbc.Row([
             dbc.Col(geographic_conclusion, width=12)
         ]),
-dbc.Row([
-    dbc.Col([
-        dbc.Card([
-            dbc.CardHeader(html.H4("图8. 各地域平均信贷限额对比", className="mb-0 fw-bold")),
-            html.Div(analysis_texts[4], className="p-3 mb-2 bg-light rounded"),
-            dbc.CardBody(dcc.Graph(figure=bar_fig, style={"height": "520px"}))
-        ], className="mb-5 shadow-lg rounded-4 border-0"),
-
-        dbc.Card([
-            dbc.CardHeader(html.H4("图9. 各地域信贷限额分布（可交互）", className="mb-0 fw-bold")),
-            html.Div(analysis_texts[5], className="p-3 mb-2 bg-light rounded"),
-            dbc.CardBody([
-                html.Label("选择展示的地区数量:", className="fw-bold mb-3"),
-                dcc.Slider(
-                    id='slider-num-areas',
-                    min=1,
-                    max=len(all_areas),
-                    value=10,
-                    marks={i: f'{i}个' for i in range(1, len(all_areas)+1, 5)},
-                    step=1,
-                    tooltip={"placement": "bottom", "always_visible": True}
-                ),
-                dcc.Graph(id='box-plot', style={"height": "520px"})
-            ])
-        ], className="mb-5 shadow-lg rounded-4 border-0"),
-
-        dbc.Card([
-            dbc.CardHeader(html.H4("图10. 收入与信贷限额关系随时间变化", className="mb-0 fw-bold")),
-            html.Div(
-                "本图通过动画散点图展示了不同年份、不同地区客户的收入与信贷限额关系，"
-                "点的大小代表违约概率，便于观察各地区随时间的变化趋势。",
-                className="p-3 mb-2 bg-light rounded"
-            ),
-            dbc.CardBody(
-                dcc.Graph(
-                    figure=scatter_income_limit_fig,
-                    style={"height": "700px", "width": "100%"}
-                )
-            )
-        ], className="mb-5 shadow-lg rounded-4 border-0")
-    ], width=12)
-])
+        dbc.Row([
+            dbc.Col([
+                dbc.Card([
+                    dbc.CardHeader(html.H4("图8. 各地域平均信贷限额对比", className="mb-0 fw-bold")),
+                    html.Div(analysis_texts[4], className="p-3 mb-2 bg-light rounded"),
+                    dbc.CardBody(dcc.Graph(figure=bar_fig, style={"height": "520px"}))
+                ], className="mb-5 shadow-lg rounded-4 border-0"),
+                dbc.Card([
+                    dbc.CardHeader(html.H4("图9. 各地域信贷限额分布（可交互）", className="mb-0 fw-bold")),
+                    html.Div(analysis_texts[5], className="p-3 mb-2 bg-light rounded"),
+                    dbc.CardBody([
+                        html.Label("选择展示的地区数量:", className="fw-bold mb-3"),
+                        dcc.Slider(
+                            id='slider-num-areas',
+                            min=1,
+                            max=len(all_areas),
+                            value=10,
+                            marks={i: f'{i}个' for i in range(1, len(all_areas)+1, 5)},
+                            step=1,
+                            tooltip={"placement": "bottom", "always_visible": True}
+                        ),
+                        dcc.Graph(id='box-plot', style={"height": "520px"})
+                    ])
+                ], className="mb-5 shadow-lg rounded-4 border-0"),
+                dbc.Card([
+                    dbc.CardHeader(html.H4("图10. 收入与信贷限额关系随时间变化", className="mb-0 fw-bold")),
+                    html.Div("本图通过动画散点图展示了不同年份、不同地区客户的收入与信贷限额关系，点的大小代表违约概率，便于观察各地区随时间的变化趋势。", className="p-3 mb-2 bg-light rounded"),
+                    dbc.CardBody(dcc.Graph(figure=scatter_income_limit_fig, style={"height": "700px", "width": "100%"}))
+                ], className="mb-5 shadow-lg rounded-4 border-0")
+            ], width=12)
+        ])
     ], fluid=True, style={"background": "#f8f9fa", "minHeight": "100vh", "paddingBottom": "40px"})
 ])
 
